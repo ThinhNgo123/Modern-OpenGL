@@ -11,7 +11,7 @@ void main()
 {
     gl_FragColor = mix(
         texture2D(outTexture, outTexCoord), 
-        texture2D(outTexture1, outTexCoord),
+        texture2D(outTexture1, vec2(1-outTexCoord.x, outTexCoord.y)),
         mixScale
     );
 }

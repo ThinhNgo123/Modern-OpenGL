@@ -79,16 +79,16 @@ class App:
 
     def mainloop(self):
         #setup texture
-        # image = self.load_image("./textures/container.jpg")
-        image = self.load_image("./textures/wall.jpg")
+        image = self.load_image("./textures/container.jpg")
+        # image = self.load_image("./textures/wall.jpg")
         image1 = pg.transform.flip(self.load_image("./textures/awesomeface.png"), flip_x=False, flip_y=True)
         glActiveTexture(GL_TEXTURE0)
         texture_id = glGenTextures(2)
         
         glBindTexture(GL_TEXTURE_2D, texture_id[0])
         glGenerateMipmap(GL_TEXTURE_2D)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         # glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         
@@ -136,7 +136,7 @@ class App:
             self.shader.setInt("outTexture", 0)
             self.shader.setInt("outTexture1", 1)
             # print(mix_scale)
-            # self.shader.setFloat("mixScale", mix_scale)
+            self.shader.setFloat("mixScale", mix_scale)
             # debug_gl(self.shader.setFloat)("u_deltaTime", math.sin(dt) / 2 + 0.5)
             # self.shader.setFloat("offsetPosition", position)
             self.renderer.draw(
@@ -161,10 +161,10 @@ class Rectangle:
     def __init__(self) -> None:
         self.position = [
             #position       color      texture
-             0.5,  0.5,    1, 0, 0,     1,  1,
-             0.5, -0.5,    0, 1, 0,     1,  0,
+             0.5,  0.5,    1, 0, 0,     2,  2,
+             0.5, -0.5,    0, 1, 0,     2,  0,
             -0.5, -0.5,    0, 0, 1,     0,  0,
-            -0.5,  0.5,    1, 0, 0,     0,  1
+            -0.5,  0.5,    1, 0, 0,     0,  2
         ]
 
         self.indices = [

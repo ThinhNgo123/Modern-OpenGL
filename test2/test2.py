@@ -28,6 +28,7 @@ def rotate_x(a):
         [0, 0, 0, 1]
     ])
 
+
 def rotate_y(a):
     return np.array([
         [math.cos(a), 0, -math.sin(a), 0],
@@ -35,6 +36,7 @@ def rotate_y(a):
         [math.sin(a), 0, math.cos(a), 0],
         [0, 0, 0, 1]
     ])
+
 
 def rotate_z(a):
     return np.array([
@@ -68,17 +70,15 @@ def create_shader(vertex, fragment):
 
     return program_id
 
-def create_vao(vertices, faces, tex_coord, index_tex):
+def create_vao(vertices, faces):
     vao = glGenVertexArrays(1)
     glBindVertexArray(vao)
 
     vbo = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, vbo)
     flatern_array = []
-    for x in range(len(faces)):
-        for y in range(3):
-            flatern_array.extend(vertices[faces[x][y]])
-            flatern_array.extend(tex_coord[index_tex[x][y]])
+    for vertice in vertices:
+        flatern_array.extend(vertice)
     flatern_array = np.array(flatern_array, dtype=np.float32)
     # max_array = max(flatern_array)
     # min_array = min(flatern_array)
@@ -86,19 +86,44 @@ def create_vao(vertices, faces, tex_coord, index_tex):
     # print(flatern_array[:200]) 
     glBufferData(GL_ARRAY_BUFFER, flatern_array.nbytes, flatern_array, GL_STATIC_DRAW)
 
-    # ibo = glGenBuffers(1)
-    # glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)
-    # flatern_array = []
-    # for face in faces:
-    #     flatern_array.extend(face)
-    # flatern_array = np.array(flatern_array, dtype=np.uint32)
-    # glBufferData(GL_ELEMENT_ARRAY_BUFFER, flatern_array.nbytes, flatern_array, GL_STATIC_DRAW)
+    ibo = glGenBuffers(1)
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)
+    flatern_array = []
+    for face in faces:
+        flatern_array.extend(face)
+    flatern_array = np.array(flatern_array, dtype=np.uint32)
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, flatern_array.nbytes, flatern_array, GL_STATIC_DRAW)
 
     glEnableVertexAttribArray(0)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 20, ctypes.c_void_p(0))
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12, ctypes.c_void_p(0))
 
-    glEnableVertexAttribArray(1)
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 20, ctypes.c_void_p(12))
+    # glEnableVertexAttribArray(1)
+    # glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 20, ctypes.c_void_p(12))
+
+    glBindVertexArray(0)
+
+    return vao
+
+def axis():
+    vao = glGenVertexArrays(1)
+    glBindVertexArray(vao)
+
+    vbo = glGenBuffers(1)
+    glBindBuffer(GL_ARRAY_BUFFER, vbo)
+    array = np.array([
+        -1.5,  0,  0,
+         1.5,  0,  0,
+         0, -1.5,  0,
+         0,  1.5,  0,
+         0,  0, -1.5,
+         0,  0,  1.5 
+    ], dtype=np.float32)
+    glBufferData(GL_ARRAY_BUFFER, array.nbytes, array, GL_STATIC_DRAW)
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12, ctypes.c_void_p(0))
+    glEnableVertexAttribArray(0)
+
+    glBindVertexArray(0)
 
     return vao
 
@@ -158,12 +183,7 @@ vertices = [
     [-0.5, -0.5, -0.5],
     [-0.5, 0.5, -0.5]
 ]
-tex_coord = [
-    [0, 0],
-    [1, 0],
-    [1, 1],
-    [0, 1]
-]
+
 faces = [
     [6, 4, 7],
     [6, 5, 4],
@@ -178,32 +198,16 @@ faces = [
     [1, 5, 6],
     [1, 6, 2]
 ]
-index_tex = [
-    [0, 2, 3],
-    [0, 1, 2],
-    [0, 2, 3],
-    [0, 1, 2],
-    [0, 2, 3],
-    [0, 1, 2],
-    [3, 1, 2],
-    [3, 0, 1],
-    [3, 0, 2],
-    [0, 1, 2],
-    [1, 2, 3],
-    [1, 3, 0]
-]
+
 len_faces = len(faces)
 print("vertices:", len(vertices))
 print("faces:", len(faces))
-vao = create_vao(vertices, faces, tex_coord, index_tex)
+vao = create_vao(vertices, faces)
+vao1 = axis()
 program = create_shader("./shaders/triangle.vert", "./shaders/triangle.frag")
-texture0 = create_texture("../Lecture2_texture/textures/container.jpg", 0)
-texture1 = create_texture("../Lecture2_texture/textures/awesomeface.png", 1)
-texture2 = create_texture("../Lecture2_texture/textures/wall.jpg", 2)
 # glFrontFace(GL_CW)
-# glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-# glPolygonMode(GL_FRONT, GL_LINE)
-# glPolygonMode(GL_BACK, GL_LINE)
+glLineWidth(2)
+glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 # glFrontFace(GL_CCW)
 glEnable(GL_DEPTH_TEST)
 # glEnable(GL_CULL_FACE)
@@ -213,13 +217,10 @@ glUseProgram(program)
 glBindVertexArray(vao)
 uniform = glGetUniformLocation(program, "translate")
 uniform1 = glGetUniformLocation(program, "scale")
-uniform2 = glGetUniformLocation(program, "rotate_y")
-uniform3 = glGetUniformLocation(program, "texture0")
-uniform4 = glGetUniformLocation(program, "texture1")
-uniform5 = glGetUniformLocation(program, "mixScale")
+uniform2 = glGetUniformLocation(program, "rotate")
 x = y = z = 0
 sx = sy = sz = 1
-angle_x = angle_y = angle_z = 0
+angle_x = angle_y = angle_z = 30
 count = 0
 while True:
     pygame.display.set_caption(f"FPS: {clock.get_fps()}")
@@ -229,43 +230,48 @@ while True:
             sys.exit()
     key = pygame.key.get_pressed()
     if key[K_RIGHT]:
-        z += 0.01
+        x += 0.01
     if key[K_LEFT]:
-        z -= 0.01
+        x -= 0.01
     if key[K_UP]:
+        y += 0.01
+    if key[K_DOWN]:
+        y -= 0.01
+    if key[K_q]:
         sx += 0.01
         sy += 0.01
         sz += 0.01
-    if key[K_DOWN]:
+    if key[K_e]:
         sx -= 0.01
         sy -= 0.01
         sz -= 0.01
     if key[K_d]:
-        # angle_x -= 0.01
+        angle_x -= 0.02
         angle_y -= 0.02
         angle_z -= 0.02
     if key[K_a]:
-        # angle_x += 0.01
+        angle_x += 0.02
         angle_y += 0.02
         angle_z += 0.02
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     # glClear(GL_COLOR_BUFFER_BIT)
+
+    glUniformMatrix4fv(uniform, 1, GL_TRUE, translate(0, 0, 0))
+    glUniformMatrix4fv(uniform1, 1, GL_TRUE, scale(1, 1, 1))
+    glUniformMatrix4fv(uniform2, 1, GL_TRUE, rotate_x(0) @ rotate_y(0) @ rotate_z(0))
+    glBindVertexArray(vao1)
+    glDrawArrays(GL_LINES, 0, 6)
     glUniformMatrix4fv(uniform, 1, GL_TRUE, translate(x, y, z))
     glUniformMatrix4fv(uniform1, 1, GL_TRUE, scale(sx, sy, sz))
     glUniformMatrix4fv(uniform2, 1, GL_TRUE, rotate_x(angle_x) @ rotate_y(angle_y) @ rotate_z(angle_z))
-    glUniform1i(uniform3, 2)
-    glUniform1i(uniform4, 1)
-    glUniform1f(uniform5, (math.sin(count) + 1) / 2)
-    # glDrawElements(GL_TRIANGLES, 3 * len_faces, GL_UNSIGNED_INT, None)
-    # glUniformMatrix4fv(uniform, 1, GL_TRUE, translate(x-1.5, y, z))
-    # glDrawElements(GL_QUADS, 4 * len_faces, GL_UNSIGNED_INT, None)
-    # glUniformMatrix4fv(uniform, 1, GL_TRUE, translate(x+1.5, y, z))
-    # glDrawElements(GL_QUADS, 4 * len_faces, GL_UNSIGNED_INT, None)
-    # glDrawElements(GL_TRIANGLES, 4 * len_faces, GL_UNSIGNED_INT, None)
-    glDrawArrays(GL_TRIANGLES, 0, 3 * len(faces))
+    glBindVertexArray(vao)
+    glDrawElements(GL_TRIANGLES, 3 * len_faces, GL_UNSIGNED_INT, None)
+    glBindVertexArray(vao1)
+    glDrawArrays(GL_LINES, 0, 6)
 
-    count += 0.01
-    if count > 100:
-        count = 0
+    angle_x += 0.007
+    angle_y += 0.007
+    angle_z += 0.007
+    
     pygame.display.flip()
     clock.tick(FPS)

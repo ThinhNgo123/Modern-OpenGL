@@ -1,13 +1,8 @@
 #version 460 core
 
 in vec4 pos;
-in vec2 texCoord;
 
 out vec4 fragColor;
-
-uniform sampler2D texture0;
-uniform sampler2D texture1;
-uniform float mixScale;
 
 void main()
 {
@@ -17,6 +12,7 @@ void main()
     //     texture(texture1, texCoord),
     //     mixScale
     // );
-    fragColor = texture(texture0, texCoord) + \
-        texture(texture1, texCoord) * mixScale;
+    // fragColor = texture(texture0, texCoord) + \
+        // texture(texture1, texCoord) * mixScale;
+    fragColor = vec4(0.5, 0.5, 1, 1);
 }

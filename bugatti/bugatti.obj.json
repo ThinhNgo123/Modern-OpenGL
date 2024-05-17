@@ -1,0 +1,249 @@
+{
+  "created_at": "2024-05-04T18:32:27.764509",
+  "version": "0.1",
+  "mtllibs": [
+    "bugatti.mtl"
+  ],
+  "vertex_buffers": [
+    {
+      "material": "BLUE.002",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 0,
+      "byte_length": 13082112
+    },
+    {
+      "material": "ENGINE",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 13082112,
+      "byte_length": 864000
+    },
+    {
+      "material": "GRILL.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 13946112,
+      "byte_length": 17598240
+    },
+    {
+      "material": "Mirrors",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 31544352,
+      "byte_length": 294912
+    },
+    {
+      "material": "NAVY",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 31839264,
+      "byte_length": 14602752
+    },
+    {
+      "material": "None",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 46442016,
+      "byte_length": 1008
+    },
+    {
+      "material": "Nut.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 46443024,
+      "byte_length": 8110080
+    },
+    {
+      "material": "Studio_Lights.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 54553104,
+      "byte_length": 288
+    },
+    {
+      "material": "Studio_Lights.005",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 54553392,
+      "byte_length": 1296
+    },
+    {
+      "material": "Trim.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 54554688,
+      "byte_length": 294912
+    },
+    {
+      "material": "WHEEL_CURB.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 54849600,
+      "byte_length": 1709568
+    },
+    {
+      "material": "WHITE.002",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 56559168,
+      "byte_length": 270432
+    },
+    {
+      "material": "aluminiumm",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 56829600,
+      "byte_length": 2893824
+    },
+    {
+      "material": "back_drop.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 59723424,
+      "byte_length": 138240
+    },
+    {
+      "material": "black",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 59861664,
+      "byte_length": 1704960
+    },
+    {
+      "material": "black_cable",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 61566624,
+      "byte_length": 2875392
+    },
+    {
+      "material": "black_fuel_tank.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 64442016,
+      "byte_length": 2151936
+    },
+    {
+      "material": "black_side_vent",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 66593952,
+      "byte_length": 585216
+    },
+    {
+      "material": "black_strip.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 67179168,
+      "byte_length": 857088
+    },
+    {
+      "material": "black_vent.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 68036256,
+      "byte_length": 331776
+    },
+    {
+      "material": "brake_disk.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 68368032,
+      "byte_length": 3833856
+    },
+    {
+      "material": "breaks_",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 72201888,
+      "byte_length": 1640160
+    },
+    {
+      "material": "cALLIPERS.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 73842048,
+      "byte_length": 1234944
+    },
+    {
+      "material": "exhaust",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 75076992,
+      "byte_length": 921600
+    },
+    {
+      "material": "front_window.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 75998592,
+      "byte_length": 1257984
+    },
+    {
+      "material": "glass_front.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 77256576,
+      "byte_length": 221184
+    },
+    {
+      "material": "glossy",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 77477760,
+      "byte_length": 884736
+    },
+    {
+      "material": "headlight_glass.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 78362496,
+      "byte_length": 580608
+    },
+    {
+      "material": "headlight_square.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 78943104,
+      "byte_length": 746496
+    },
+    {
+      "material": "red.002",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 79689600,
+      "byte_length": 184320
+    },
+    {
+      "material": "red_glass",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 79873920,
+      "byte_length": 6932736
+    },
+    {
+      "material": "reflective_coat.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 86806656,
+      "byte_length": 516096
+    },
+    {
+      "material": "rim_blue.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 87322752,
+      "byte_length": 5078016
+    },
+    {
+      "material": "rim_silver.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 92400768,
+      "byte_length": 2580480
+    },
+    {
+      "material": "silver_door_strip.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 94981248,
+      "byte_length": 3733056
+    },
+    {
+      "material": "silver_trim",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 98714304,
+      "byte_length": 1880064
+    },
+    {
+      "material": "sun",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 100594368,
+      "byte_length": 288
+    },
+    {
+      "material": "tyre.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 100594656,
+      "byte_length": 2654208
+    },
+    {
+      "material": "wheel_joint.004",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 103248864,
+      "byte_length": 1327104
+    },
+    {
+      "material": "white_holders",
+      "vertex_format": "N3F_V3F",
+      "byte_offset": 104575968,
+      "byte_length": 1391616
+    }
+  ]
+}

@@ -92,12 +92,12 @@ def normalize(vec):
     mag = magnitude(vec)
     if mag == 0:
         raise Exception("Length equal zero")
-    return (vec[0] / mag, vec[1] / mag, vec[2] / mag)
+    return [vec[0] / mag, vec[1] / mag, vec[2] / mag]
 
 def cross(vec1, vec2):
-    return (vec1[1] * vec2[2] - vec2[1] * vec1[2],
+    return [vec1[1] * vec2[2] - vec2[1] * vec1[2],
             vec1[2] * vec2[0] - vec1[0] * vec2[2],
-            vec1[0] * vec2[1] - vec2[0] * vec1[1])
+            vec1[0] * vec2[1] - vec2[0] * vec1[1]]
 
 def look_at(eye, center, up):
     direction = normalize((eye[0] - center[0], eye[1] - center[1], eye[2] - center[2]))
@@ -176,23 +176,34 @@ def create_vao(vertices, faces):
     return vao
 
 def axis():
+    a = 20
+
     vao = glGenVertexArrays(1)
     glBindVertexArray(vao)
 
     vbo = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, vbo)
     array = np.array([
-        -0.8,  0,  0,
-         0.8,  0,  0,
-         0, -0.8,  0,
-         0,  0.8,  0,
-         0,  0, -0.8,
-         0,  0,  0.8 
+        a, 0, a, 1, 0,
+        -a, 0, a, 0, 0,
+        -a, 0, -a, 0, 1,
+        a, 0, -a, 1, 1 
     ], dtype=np.float32)
     glBufferData(GL_ARRAY_BUFFER, array.nbytes, array, GL_STATIC_DRAW)
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12, ctypes.c_void_p(0))
+    ebo = glGenBuffers(1)
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
+    array = np.array([
+        0, 1, 3,
+        1, 2, 3
+    ], dtype=np.float32)
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, array.nbytes, array, GL_STATIC_DRAW)
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 20, ctypes.c_void_p(0))
     glEnableVertexAttribArray(0)
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 20, ctypes.c_void_p(12))
+    glEnableVertexAttribArray(1)
 
     glBindVertexArray(0)
 
@@ -334,6 +345,7 @@ len_faces = len(faces)
 print("vertices:", len(vertices))
 print("faces:", len(faces))
 vao = create_vao(vertices, faces)
+vao1 = axis()
 texture1 = create_texture("./textures/container.jpg", 1)
 texture2 = create_texture("./textures/awesomeface.png", 2)
 program = create_shader("./shaders/triangle.vert", "./shaders/triangle.frag")
@@ -352,10 +364,11 @@ glUniform1i(texture2_location, texture2)
 eye = [0, 0, 10]
 center = [0, 0, 0]
 up = [0, 1, 0]
-direction = normalize((eye[0] - center[0], eye[1] - center[1], eye[2] - center[2]))
-right = normalize(cross(up, direction))
-up = normalize(cross(direction, right))
+forward = normalize([center[0] - eye[0], center[1] - eye[1], center[2] - eye[2]])
+right = normalize(cross(forward, up))
+up = normalize(cross(right, forward))
 # sx = sy = sz = 1
+# print(forward, right, up)
 angle_x = angle_y = angle_z = 0.1
 FOV = 45
 aspect_ratio = WIDTH / HEIGTH
@@ -368,7 +381,6 @@ while True:
     current_frame = pygame.time.get_ticks()
     delta_time = (current_frame - last_frame) * 0.001
     last_frame = current_frame
-    # print(delta_time)
     # delta_time = 1 / clock.tick(FPS)
     # print(delta_time)
     pygame.display.set_caption(f"FPS: {clock.get_fps()}")
@@ -380,10 +392,14 @@ while True:
             rel_x, rel_y = pygame.mouse.get_rel()
             # print(rel_x, rel_y)
             yaw += rel_x * sensitivity
-            direction_mag = magnitude([eye[0] - center[0],  eye[1] - center[1], eye[2] - center[2]])
-            # print(yaw)
-            center[0] = direction_mag * math.sin(rad(yaw))
-            center[2] = direction_mag - direction_mag * math.cos(rad(yaw))
+            pitch -= rel_y * sensitivity
+            forward = normalize([
+                 math.sin(rad(yaw)) * math.cos(rad(pitch)),
+                 math.sin(rad(pitch)),
+                -math.cos(rad(yaw)) * math.cos(rad(pitch))
+            ])
+            right = normalize(cross(forward, [0, 1, 0]))
+            up = normalize(cross(right, forward))
             # print(center)
         if event.type == MOUSEWHEEL:
             FOV -= event.precise_y * 2
@@ -393,52 +409,44 @@ while True:
                 FOV = 45
 
     key = pygame.key.get_pressed()
-    if key[K_RIGHT]:
-        eye[0] += right[0] * camera_speed * delta_time
-        eye[1] += right[1] * camera_speed * delta_time
-        eye[2] += right[2] * camera_speed * delta_time
-        center[0] += right[0] * camera_speed * delta_time
-        center[1] += right[1] * camera_speed * delta_time
-        center[2] += right[2] * camera_speed * delta_time
-    if key[K_LEFT]:
-        eye[0] -= right[0] * camera_speed * delta_time
-        eye[1] -= right[1] * camera_speed * delta_time
-        eye[2] -= right[2] * camera_speed * delta_time
-        center[0] -= right[0] * camera_speed * delta_time
-        center[1] -= right[1] * camera_speed * delta_time
-        center[2] -= right[2] * camera_speed * delta_time
-    if key[K_UP]:
-        pass
-    if key[K_DOWN]:
-        pass
+    if key[K_d]:
+        eye = [
+            eye[0] + right[0] * camera_speed * delta_time,
+            eye[1] + right[1] * camera_speed * delta_time,
+            eye[2] + right[2] * camera_speed * delta_time,
+        ]
+    if key[K_a]:
+        eye = [
+            eye[0] - right[0] * camera_speed * delta_time,
+            eye[1] - right[1] * camera_speed * delta_time,
+            eye[2] - right[2] * camera_speed * delta_time,
+        ]
+    if key[K_w]:
+        eye = [
+            eye[0] + up[0] * camera_speed * delta_time,
+            eye[1] + up[1] * camera_speed * delta_time,
+            eye[2] + up[2] * camera_speed * delta_time,
+        ]
+    if key[K_s]:
+        eye = [
+            eye[0] - up[0] * camera_speed * delta_time,
+            eye[1] - up[1] * camera_speed * delta_time,
+            eye[2] - up[2] * camera_speed * delta_time,
+        ]
     if key[K_e]:
-        eye[0] -= direction[0] * camera_speed * delta_time * 2
-        eye[1] -= direction[1] * camera_speed * delta_time * 2
-        eye[2] -= direction[2] * camera_speed * delta_time * 2
-        center[0] -= direction[0] * camera_speed * delta_time * 2
-        center[1] -= direction[1] * camera_speed * delta_time * 2
-        center[2] -= direction[2] * camera_speed * delta_time * 2
+        eye = [
+            eye[0] + forward[0] * camera_speed * delta_time * 2,
+            eye[1] + forward[1] * camera_speed * delta_time * 2,
+            eye[2] + forward[2] * camera_speed * delta_time * 2,
+        ]
+        # eye[1] = 0
     if key[K_q]:
-        eye[0] += direction[0] * camera_speed * delta_time * 2
-        eye[1] += direction[1] * camera_speed * delta_time * 2
-        eye[2] += direction[2] * camera_speed * delta_time * 2
-        center[0] += direction[0] * camera_speed * delta_time * 2
-        center[1] += direction[1] * camera_speed * delta_time * 2
-        center[2] += direction[2] * camera_speed * delta_time * 2
-    # if key[K_d]:
-    #     x += 0.01
-    #     # center[2] += 0.01
-    # if key[K_a]:
-    #     x -= 0.01
-    #     # center[2] -= 0.01
-    # if key[K_w]:
-    #     y += 0.01
-    # if key[K_s]:
-    #     y -= 0.01
-    # if key[K_e]:
-    #     z += 0.01
-    # if key[K_q]:
-    #     z -= 0.01
+        eye = [
+            eye[0] - forward[0] * camera_speed * delta_time * 2,
+            eye[1] - forward[1] * camera_speed * delta_time * 2,
+            eye[2] - forward[2] * camera_speed * delta_time * 2,
+        ]
+        # eye[1] = 0
 
     # if key[K_LEFT]:
     #     FOV -= 1
@@ -450,11 +458,8 @@ while True:
 
     # u_model = get_model_matrix(rotate=rotate(rad(-55), 0, 0))
 
-    direction = normalize((eye[0] - center[0], eye[1] - center[1], eye[2] - center[2]))
-    right = normalize(cross(up, direction))
-    up = normalize(cross(direction, right))
-    u_view = look_at(eye, center, up)
-    # u_view = translate(0, 0, -3)
+    u_view = look_at(eye, [eye[0] + forward[0], eye[1] + forward[1], eye[2] + forward[2]], up)
+    # print(eye)
     # print(eye[2])
     # u_view = glm.value_ptr(glm.lookAt(glm.vec3(0, 0, radius), glm.vec3(0, 0, 0), glm.vec3(0, 1, 0)))
     u_proj = perspective(rad(FOV), aspect_ratio, 0.1, 100)
@@ -472,8 +477,7 @@ while True:
         glUniformMatrix4fv(model_location, 1, GL_TRUE, u_model)
         # glDrawElements(GL_TRIANGLES, len_faces, GL_UNSIGNED_INT, None)
         glDrawArrays(GL_TRIANGLES, 0, 36)
-        # glBindVertexArray(vao1)
-        # glDrawArrays(GL_LINES, 0, 6)
+
 
     # angle_x += 0.007
     # angle_y += 0.007

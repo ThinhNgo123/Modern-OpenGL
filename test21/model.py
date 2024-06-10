@@ -1,6 +1,7 @@
 import pygame
 from OpenGL.GL import *
 from pyassimp import load, postprocess
+from PIL import Image
 from typing import List, Dict
 from mesh import Mesh, Vertex, Texture
 from shader import Shader
@@ -9,24 +10,48 @@ class Model:
     def __init__(self, path: str) -> None:
         self.meshes: List[Mesh] = []
         self.textures_loaded: Dict[str, Texture] = {}
-        self.directory: str = ""
+        self.directory: str = path[:path.rfind("/")+1]
+        self.materials = {}
 
+        self.load_mtl_file(path)
         self.load_model(path)
         
-        mesh = self.meshes[0]
-        print(mesh.vertices[0].position)
-        print(mesh.vertices[0].normal)
-        print(mesh.vertices[0].tex_coords)
+        # mesh = self.meshes[0]
+        # print(mesh.vertices[0].position)
+        # print(mesh.vertices[0].normal)
+        # print(mesh.vertices[0].tex_coords)
+        # for mesh in self.meshes:
+        #     print(mesh.textures[0].type)
+        #     print(mesh.textures[1].type)
+        #     print()
 
+    def load_mtl_file(self, path: str):
+        # print(path[path.rfind("/")+1:].split(".")[0])
+        with open(self.directory + \
+                  path[path.rfind("/")+1:].split(".")[0] + ".mtl"
+        ) as file:
+            name = ""
+            for line in file:
+                # print(line)
+                if line[0] == "#" or line.strip("\n") == "":
+                    continue
+                # print(line.strip("\n").strip("\t").split(" ", maxsplit=1))
+                word1, word2 = line.strip("\n").strip("\t").split(" ", maxsplit=1)
+                if word1 == "newmtl":
+                    name = word2
+                    self.materials[word2] = {}
+                elif word1 in ("Tf", "Ka", "Kd", "Ks", "Ke"):
+                    self.materials[name][word1] = [float(value) for value in word2.strip(" ").split(" ")]
+                elif word1 in ("Ns", "Ni", "d", "Tr", "illum", "map_Ka", "map_Kd", "map_Ks", "map_d"):
+                    self.materials[name][word1] = word2
 
     def load_model(self, path: str):
         with load(
             path, 
-            # processing=postprocess.aiProcess_Triangulate | postprocess.aiProcess_FlipUVs
-            processing=postprocess.aiProcess_Triangulate
+            processing=postprocess.aiProcess_Triangulate | postprocess.aiProcess_FlipUVs
+            # processing=postprocess.aiProcess_Triangulate
         ) as scene:
 
-            self.directory = path[:path.rfind("/")+1]
             self.processNode(scene.rootnode, scene)
 
     def processNode(self, node, scene):
@@ -71,10 +96,13 @@ class Model:
         return Mesh(vertices, indices, textures)
 
     def texture_from_file(self, path: str):
-        image = pygame.image.load(path)
+        # image = pygame.image.load(path)
+        image = Image.open(path).convert("RGB")
         # image = self.load_image("./textures/wall.jpg")
-        image = pygame.transform.flip(image, flip_x=False, flip_y=False)
-        
+        # image = pygame.transform.flip(image, flip_x=False, flip_y=True)
+        image = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+        # image = image.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+
         texture_id = glGenTextures(1)
         
         glBindTexture(GL_TEXTURE_2D, texture_id)
@@ -85,40 +113,53 @@ class Model:
         
         glTexImage2D(
             GL_TEXTURE_2D, 0, GL_RGB, 
-            image.get_width(),
-            image.get_height(),
-            0, GL_RGB, GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGB"))
+            image.width,
+            image.height,
+            0, GL_RGB, GL_UNSIGNED_BYTE, image.tobytes())
         glGenerateMipmap(GL_TEXTURE_2D)
 
         return texture_id
 
     def load_material_textures(self, material, type_name: str):
         textures = []
-        type = type_name.split("_")[1]
-        # print("type", type)
-        for key, value in material.properties.items():
-            # print("items:", key, value)
-            if key != "file" or value.split(".")[0] != type:
-                continue
+        material = self.materials[material.properties["name"]]
             # print("ok")
-            texture = self.textures_loaded.get(value, None)
+        if type_name == "texture_diffuse" and \
+            material.get("map_Kd", None):
+            
+            texture = self.textures_loaded.get(material["map_Kd"], None)
             if texture:
                 textures.append(texture)
-                continue
-            texture = Texture(
-                id=self.texture_from_file(self.directory + value),
-                type=type_name,
-                path=value
-            )
-            self.textures_loaded[value] = texture
-            textures.append(texture)
-        # print(textures)
+            else:
+                texture = Texture(
+                    id=self.texture_from_file(self.directory + material["map_Kd"]),
+                    type=type_name,
+                    path=material["map_Kd"]
+                )
+                self.textures_loaded[material["map_Kd"]] = texture
+                textures.append(texture)
+        elif type_name == "texture_specular" and \
+            material.get("map_Ks", None):
+            
+            texture = self.textures_loaded.get(material["map_Ks"], None)
+            if texture:
+                textures.append(texture)
+            else:
+                texture = Texture(
+                    id=self.texture_from_file(self.directory + material["map_Ks"]),
+                    type=type_name,
+                    path=material["map_Ks"]
+                )
+                self.textures_loaded[material["map_Ks"]] = texture
+                textures.append(texture)
+        # for texture in textures:
+        #     print(texture.__dict__)
         return textures
 
     def draw(self, shader: Shader):
         for mesh in self.meshes:
             mesh.draw(shader)
-        # self.meshes[50].draw(shader)
+        # self.meshes[0].draw(shader)
 
 if __name__ == "__main__":
     model = Model("../backpack/backpack.obj")

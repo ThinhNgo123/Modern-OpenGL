@@ -1,11 +1,13 @@
 import pygame, sys, math
 from pygame.locals import *
 from OpenGL.GL import *
+from PIL import Image
 import numpy as np
 import ctypes 
 import glm
 from model import Model
 from shader import Shader
+
 
 def rad(degree):
     return degree * math.pi / 180
@@ -254,9 +256,11 @@ def create_light_vao():
     return vao
 
 def create_texture(image_path, number):
-    image = pygame.image.load(image_path)
+    # image = pygame.image.load(image_path)
+    image = Image.open(image_path).convert("RGB")
     # image = self.load_image("./textures/wall.jpg")
-    image = pygame.transform.flip(image, flip_x=False, flip_y=True)
+    # image = pygame.transform.flip(image, flip_x=False, flip_y=True)
+    image = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
     glActiveTexture(GL_TEXTURE0 + number)
     texture_id = glGenTextures(1)
     
@@ -269,9 +273,12 @@ def create_texture(image_path, number):
     
     glTexImage2D(
         GL_TEXTURE_2D, 0, GL_RGB, 
-        image.get_width(),
-        image.get_height(),
-        0, GL_RGB, GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGB"))
+        # image.get_width(),
+        image.width,
+        # image.get_height(),
+        image.height,
+        # 0, GL_RGB, GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGB"))
+        0, GL_RGB, GL_UNSIGNED_BYTE, image.tobytes())
     glGenerateMipmap(GL_TEXTURE_2D)
 
     return number
@@ -299,67 +306,85 @@ def get_model_matrix(
     # print(rotate)
     return translate @ rotate @ scale
 
-WIDTH, HEIGTH, FPS = 1200, 800, 120
+WIDTH, HEIGTH, FPS = 1200, 800, 0
 pygame.init()
 pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, 4)
 pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MINOR_VERSION, 6)
 pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_CORE)
-# pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 24)
+pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 24)
 # pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 1)
-# pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 2)
+# pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 1)
 win = pygame.display.set_mode((WIDTH, HEIGTH), flags=OPENGL | DOUBLEBUF)
 # glEnable(GL_MULTISAMPLE)
 glEnable(GL_DEPTH_TEST)
 # glFrontFace(GL_CCW)
 # glFrontFace(GL_CW)
 # glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-# glEnable(GL_CULL_FACE)
+glEnable(GL_CULL_FACE)
 # glCullFace(GL_FRONT)
-# glCullFace(GL_BACK)
+glCullFace(GL_BACK)
 # glLineWidth(2)
-# pygame.event.set_grab(True)
+pygame.event.set_grab(True)
 # pygame.mouse.set_visible(False)
-# pygame.mouse.set_pos(WIDTH / 2, HEIGTH / 2)
+pygame.mouse.set_pos(WIDTH / 2, HEIGTH / 2)
 print("Version:", glGetString(GL_VERSION))
-print("Shader version:", glGetString(GL_SHADING_LANGUAGE_VERSION))
+# print("Shader version:", glGetString(GL_SHADING_LANGUAGE_VERSION))
+# print("Depth size:", glGetIntegerv(GL_DEPTH_BITS))
+print("Depth size:", pygame.display.gl_get_attribute(pygame.GL_DEPTH_SIZE))
 clock = pygame.time.Clock()
 current_frame = last_frame = 0
 # vertices, faces = load_obj("../bugatti/bugatti.obj")
 # vertices, faces = load_obj("../../learn_python/Software_3D_engine-main/resources/t_34_obj.obj")
 # vertices, faces = load_obj("../MI28.obj")
 
-point_light_position = [
-    [0.7,  0.2,   2],
-    [2.3, -3.3,  -4],
-    [ -4,    2, -12],
-    [  0,    0,  -3]
-]
+# point_light_position = [
+#     [0.7,  0.2,   2],
+#     [2.3, -3.3,  -4],
+#     [ -4,    2, -12],
+#     [  0,    0,  -3]
+# ]
 
-light_pos = [1.2, 1, 2]
+# light_pos = [1.2, 1, 2]
 
-model = Model("../Loco/Loco.obj")
-# model = Model("./xetang.obj")
+model = Model("../backpack/backpack.obj")
+# model = Model("../xetang.obj")
 shader = Shader(
-    # "./shaders/backpack.vert",
-    # "./shaders/backpack.frag"
-    "./shaders/model.vert",
-    "./shaders/model.frag"
+    "./shaders/backpack.vert",
+    "./shaders/backpack.frag"
+    # "./shaders/model.vert",
+    # "./shaders/model.frag"
 )
 
-diffuse = create_texture("../backpack/diffuse.jpg", 0)
-shader.use()
+# diffuse = create_texture("../Loco/Loco [Albedo].jpg", 0)
+# specular = create_texture("../Loco/Loco [Specular].jpg", 1)
+# shader.use()
 
 light_vao = create_light_vao()
 light_shader = create_shader(
     "./shaders/light.vert",
     "./shaders/light.frag"
 )
-light_model_location = glGetUniformLocation(light_shader, "u_model")
-light_view_location = glGetUniformLocation(light_shader, "u_view")
-light_proj_location = glGetUniformLocation(light_shader, "u_proj")
-light_position = [5, 5, 5]
+light_position = [2, 2, 2]
+
+glUseProgram(light_shader)
+model1_location = glGetUniformLocation(light_shader, "u_model")
+view1_location = glGetUniformLocation(light_shader, "u_view")
+proj1_location = glGetUniformLocation(light_shader, "u_proj")
+
+# point_light_location = {
+#     "position": glGetUniformLocation(light_shader, "pointLight.position"),
+#     "ambient": glGetUniformLocation(light_shader, "pointLight.ambient"),
+#     "diffuse": glGetUniformLocation(light_shader, "pointLight.diffuse"),
+#     "specular": glGetUniformLocation(light_shader, "pointLight.specular"),
+#     "constant": glGetUniformLocation(light_shader, "pointLight.constant"),
+#     "linear": glGetUniformLocation(light_shader, "pointLight.linear"),
+#     "quadratic": glGetUniformLocation(light_shader, "pointLight.quadratic")
+# }
+# light_model_location = glGetUniformLocation(light_shader, "u_model")
+# light_view_location = glGetUniformLocation(light_shader, "u_view")
+# light_proj_location = glGetUniformLocation(light_shader, "u_proj")
 # light_direction = [-0.2, -1, -0.3]
-axis_world_vao = axis()
+# axis_world_vao = axis()
 # axis_local_vao = axis(1)
 
 # shader.use()
@@ -380,7 +405,6 @@ axis_world_vao = axis()
 # diffuse_dir_light_location = glGetUniformLocation(program, "dirLight.diffuse")
 # specular_dir_light_location = glGetUniformLocation(program, "dirLight.specular")
 
-# point_light_location = []
 
 # for i in range(len(point_light_position)):
 #     point_light_location.append({
@@ -406,10 +430,6 @@ axis_world_vao = axis()
 # quadratic_spot_light_location = glGetUniformLocation(program, "spotLight.quadratic")
 
 
-# glUseProgram(light_program)
-# model1_location = glGetUniformLocation(light_program, "u_model")
-# view1_location = glGetUniformLocation(light_program, "u_view")
-# proj1_location = glGetUniformLocation(light_program, "u_proj")
 # light_color_location = glGetUniformLocation(light_program, "lightColor")
 # u_proj = ortho(-1, 1, -1, 1, 1, -1)
 # print(u_proj)
@@ -433,8 +453,9 @@ model_draw = False
 cutoff = 12.5
 outer_cutoff = 13.5
 offset = outer_cutoff - cutoff
-shininess = 10
+shininess = 225
 # glEnable(GL_SCISSOR_TEST)
+count = 1
 
 while True:
     clock.tick(FPS)
@@ -469,10 +490,18 @@ while True:
             # elif FOV >= 45:
             #     FOV = 45
             shininess += event.precise_y * 2
+            if shininess <= 0:
+                shininess = 0.01
             print("shininess:", shininess)
         if event.type == KEYDOWN:
             if event.key == K_p:
                 model_draw = not model_draw
+            if event.key == K_KP_1:
+                count += 1
+                print(count)
+            if event.key == K_KP_2:
+                count -= 1
+                print(count)
 
     key = pygame.key.get_pressed()
     if key[K_d]:
@@ -562,53 +591,43 @@ while True:
     else:
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
-    u_view = look_at(eye, [eye[0] + forward[0], eye[1] + forward[1], eye[2] + forward[2]], up)
-    # print(eye)
-    # print(eye[2])
-    # u_view = glm.value_ptr(glm.lookAt(glm.vec3(0, 0, radius), glm.vec3(0, 0, 0), glm.vec3(0, 1, 0)))
-    u_proj = perspective(rad(FOV), aspect_ratio, 0.1, 100)
-
-    # u_model = get_model_matrix()
-    u_model = get_model_matrix(scale=scale(0.01, 0.01, 0.01))
-    # u_model = get_model_matrix(scale=scale(0.05, 0.05, 0.05))
-
     shader.use()
+    u_view = look_at(eye, [eye[0] + forward[0], eye[1] + forward[1], eye[2] + forward[2]], up)
+    u_proj = perspective(rad(FOV), aspect_ratio, 0.1, 100)
+    u_model = get_model_matrix(scale=scale(1, 1, 1))
+
     shader.setMatrix4("u_view", u_view)
     shader.setMatrix4("u_proj", u_proj)
     shader.setMatrix4("u_model", u_model)
-    # shader.setInt("diffuse", diffuse)
-    shader.setFloat3("viewDir", *eye)
-    shader.setFloat3("dirLight.direction", -light_position[0], -light_position[1], -light_position[2])
-    shader.setFloat3("dirLight.ambient", 0.2, 0.2, 0.2)
-    shader.setFloat3("dirLight.diffuse", 0.5, 0.5, 0.5)
-    shader.setFloat3("dirLight.specular", 1, 1, 1)
-
-    shader.setFloat3("material.ambient", 0.5882, 0.5882, 0.5882)
-    shader.setFloat3("material.diffuse", 0.5882, 0.5882, 0.5882)
-    shader.setFloat3("material.specular", 1, 1, 1)
+    shader.setFloat3("viewPos", *eye)
     shader.setFloat("material.shininess", shininess)
+    # shader.setInt("material.texture_diffuse1", diffuse)
+    # shader.setInt("material.texture_specular1", specular)
+    # # shader.setInt("diffuse", diffuse)
+    
+    shader.setFloat3("pointLight.position", *light_position)
+    shader.setFloat3("pointLight.ambient", 0.2, 0.2, 0.2)
+    shader.setFloat3("pointLight.diffuse", 0.6, 0.6, 0.6)
+    shader.setFloat3("pointLight.specular", 1, 1, 1)
+    shader.setFloat("pointLight.constant", 1)
+    shader.setFloat("pointLight.linear", 0.007)
+    shader.setFloat("pointLight.quadratic", 0.0002)
 
-    model.draw(shader)
+    for i in range(count):
+        model.draw(shader)
 
     glUseProgram(light_shader)
-    glUniformMatrix4fv(light_view_location, 1, GL_TRUE, u_view)
-    glUniformMatrix4fv(light_proj_location, 1, GL_TRUE, u_proj)
+    glUniformMatrix4fv(view1_location, 1, GL_TRUE, u_view)
+    glUniformMatrix4fv(proj1_location, 1, GL_TRUE, u_proj)
     u_model = get_model_matrix(
         translate=translate(*light_position),
         scale=scale(0.2, 0.2, 0.2)
         # rotate=rotate(angle_x * i, angle_y * i, angle_z)
     )
-    glUniformMatrix4fv(light_model_location, 1, GL_TRUE, u_model)
+    glUniformMatrix4fv(model1_location, 1, GL_TRUE, u_model)
     glBindVertexArray(light_vao)
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT , None)
-
-    # u_model = get_model_matrix(
-    #         translate=translate(0, 0, 0),
-    #         # scale=scale(2, 2, 2)
-    # )
-    # glUniformMatrix4fv(light_model_location, 1, GL_TRUE, u_model)
-    # glBindVertexArray(axis_world_vao)
-    # glDrawArrays(GL_LINES, 0, 6)
+    # glDrawArrays(GL_TRIANGLES, 0, 36)
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, None)
 
     # glUseProgram(program)
     # glUniformMatrix4fv(view_location, 1, GL_TRUE, u_view)

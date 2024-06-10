@@ -338,7 +338,7 @@ point_light_position = [
 light_pos = [1.2, 1, 2]
 
 model = Model("../Loco/Loco.obj")
-# model = Model("./xetang.obj")
+# model = Model("../xetang.obj")
 shader = Shader(
     # "./shaders/backpack.vert",
     # "./shaders/backpack.frag"

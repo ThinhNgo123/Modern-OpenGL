@@ -57,19 +57,19 @@ class Mesh:
         glBindVertexArray(0)
 
     def draw(self, shader: Shader):
-        # diffuse_nr = 1
-        # specular_nr = 1
-        # for index, texture in enumerate(self.textures):
-        #     glActiveTexture(GL_TEXTURE0 + index)
-        #     glBindTexture(GL_TEXTURE_2D, texture.id)
-        #     if texture.type == "texture_diffuse":
-        #         shader.setInt(f"material.texture_diffuse{diffuse_nr}", index)
-        #         diffuse_nr += 1
-        #         # print(f"material.texture_diffuse{diffuse_nr}")
-        #     elif texture.type == "texture_specular":
-        #         shader.setInt(f"material.texture_specular{specular_nr}", index)
-        #         specular_nr += 1
-        #         # print(f"material.texture_specular{specular_nr}")
+        diffuse_nr = 1
+        specular_nr = 1
+        for index, texture in enumerate(self.textures):
+            glActiveTexture(GL_TEXTURE0 + index)
+            glBindTexture(GL_TEXTURE_2D, texture.id)
+            if texture.type == "texture_diffuse":
+                shader.setInt(f"material.texture_diffuse{diffuse_nr}", index)
+                # print(f"material.texture_diffuse{diffuse_nr}")
+                diffuse_nr += 1
+            elif texture.type == "texture_specular":
+                shader.setInt(f"material.texture_specular{specular_nr}", index)
+                # print(f"material.texture_specular{specular_nr}")
+                specular_nr += 1
         
         glBindVertexArray(self.vao)
         glDrawElements(GL_TRIANGLES, len(self.indices), GL_UNSIGNED_INT, None)

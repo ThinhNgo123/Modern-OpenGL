@@ -11,6 +11,8 @@ class Shader:
         fragment_id = self.compile_shader(Shader.FRAGMENT_SHADER, fragment_shader_source)
         self.program_id = self.compile_program(vertex_id, fragment_id)
 
+        self.shader_location = {}
+
     def read_file(self, path):
         try:
             with open(path, "r") as file:
@@ -50,25 +52,34 @@ class Shader:
         glUseProgram(self.program_id)
 
     def setInt(self, name: str, value: int):
-        glUniform1i(glGetUniformLocation(self.program_id, name), value)
+        glUniform1i(self.get_location_shader(name), value)
     
     def setBool(self, name: str, value: bool):
-        glUniform1i(glGetUniformLocation(self.program_id, name), int(value))
+        glUniform1i(self.get_location_shader(name), int(value))
 
     def setFloat(self, name: str, value: float):
         # self.use()
-        # location = glGetUniformLocation(self.program_id, name)
+        # location = self.get_location_shader(name)
         # print("location:", location)
         # print("error:", glGetError())
         # glUniform1f(location, value)
         # print("error:", glGetError())
-        glUniform1f(glGetUniformLocation(self.program_id, name), value)
+        glUniform1f(self.get_location_shader(name), value)
 
     def setFloat3(self, name: str, value1: float, value2: float, value3: float):
-        glUniform3f(glGetUniformLocation(self.program_id, name), value1, value2, value3)
+        glUniform3f(self.get_location_shader(name), value1, value2, value3)
 
     def setMatrix4(self, name: str, matrix):
-        glUniformMatrix4fv(glGetUniformLocation(self.program_id, name), 1, GL_TRUE, matrix)
+        glUniformMatrix4fv(self.get_location_shader(name), 1, GL_TRUE, matrix)
+
+    def get_location_shader(self, name: str):
+        location = self.shader_location.get(name, None)
+        if location != None:
+            return location
+        # print("no location")
+        location = glGetUniformLocation(self.program_id, name)
+        self.shader_location[name] = location
+        return location
 
     def __delete__(self):
         glDeleteProgram(self.program_id)

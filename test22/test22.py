@@ -268,7 +268,8 @@ def create_texture(image_path, number):
     glBindTexture(GL_TEXTURE_2D, texture_id)
     glGenerateMipmap(GL_TEXTURE_2D)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+    # glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, [1, 1, 0])
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
     
@@ -664,6 +665,9 @@ while True:
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
     else:
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
+    glDepthMask(GL_TRUE)
+    glDepthFunc(GL_LESS)
 
     shader.use()
     u_view = look_at(eye, [eye[0] + forward[0], eye[1] + forward[1], eye[2] + forward[2]], up)

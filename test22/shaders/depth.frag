@@ -9,7 +9,13 @@ uniform sampler2D texture1;
 // uniform vec3 objectColor;
 // uniform vec3 lightColor;
 
+float near = 0.1, far = 100.0;
+
 void main()
 {
-    FragColor = texture(texture1, TexCoord);
+    // FragColor = texture(texture1, TexCoord);
+    float z_ndc = 2.0 * gl_FragCoord.z - 1;
+    float z_eye = (-2.0  * near * far) / (z_ndc * (near - far) + near + far);
+    // FragColor = vec4(vec3(1, 1, 0) * vec3((-z_eye + near) / (far + near)), 1);
+    FragColor = vec4(vec3((-z_eye + near) / (far + near)), 1);
 }

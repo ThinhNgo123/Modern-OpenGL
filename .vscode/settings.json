@@ -1,0 +1,9 @@
+{
+    "C_Cpp.default.compilerPath": "d:\\App\\mingw\\bin\\g++.exe",
+    "files.associations": {
+        "stdexcept": "cpp",
+        "exception": "cpp",
+        "cassert": "cpp",
+        "type_traits": "cpp"
+    }
+}

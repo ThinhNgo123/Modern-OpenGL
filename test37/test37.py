@@ -501,6 +501,17 @@ current_frame = last_frame = 0
 # vertices, faces = load_obj("../../learn_python/Software_3D_engine-main/resources/t_34_obj.obj")
 # vertices, faces = load_obj("../MI28.obj")
 
+quad_vertices = [
+    # positions      colors
+    -0.05,  0.05,  1.0, 0.0, 0.0,
+     0.05, -0.05,  0.0, 1.0, 0.0,
+    -0.05, -0.05,  0.0, 0.0, 1.0,
+
+    -0.05,  0.05,  1.0, 0.0, 0.0,
+     0.05, -0.05,  0.0, 1.0, 0.0,   
+     0.05,  0.05,  0.0, 1.0, 1.0		    		
+]
+
 cube_vertices = [
     # positions        normal
     -0.5, -0.5, -0.5,  0.0,  0.0, -1.0,
@@ -621,23 +632,29 @@ points = [
 # cube_vao = create_vao(cube_vertices)
 # plane_vao = create_vao(plane_vertices)
 # skybox_vao = create_skybox_vao(skybox_vertices)
+quad_vao = create_vao(quad_vertices)
+
+shader = Shader(
+    "./shaders/quad_instance.vs",
+    "./shaders/quad_instance.fs"
+)
 
 # points_vao = create_vao(points)
 
-model = Model("../backpack/backpack.obj")
+# model = Model("../backpack/backpack.obj")
 # model = Model("../Loco/Loco.obj")
 
-shader = Shader(
-    "./shaders/explode.vs",
-    "./shaders/explode.fs"
-    # "./shaders/explode.gs"
-)
+# shader = Shader(
+#     "./shaders/explode.vs",
+#     "./shaders/explode.fs"
+#     # "./shaders/explode.gs"
+# )
 
-normal_shader = Shader(
-    "./shaders/normal.vs",
-    "./shaders/normal.fs",
-    "./shaders/normal.gs"
-)
+# normal_shader = Shader(
+#     "./shaders/normal.vs",
+#     "./shaders/normal.fs",
+#     "./shaders/normal.gs"
+# )
 
 # reflection_shader = Shader(
 #     "./shaders/cubemap_reflect.vert",
@@ -664,9 +681,19 @@ normal_shader = Shader(
 
 # texture1 = create_texture("./textures/Tileable marble floor tile texture (6).jpg", 0)
 # texture2 = create_texture("./textures/metal-texture-25.jpg", 1)
-texture3 = create_cube_map_texture("../skybox", 2)
+# texture3 = create_cube_map_texture("../skybox", 2)
 
 # screen_fbo, texture3 = frame_buffer_to_texture(2)
+
+translation = []
+for i in range(-10, 10, 2):
+    for j in range(-10, 10, 2):
+        translation.append((i / 10 + 0.1, j / 10 + 0.1))
+
+shader.use()
+for i in range(len(translation)):
+        # for j in range(divide):
+    shader.setFloat2(f"translation[{i}]", *translation[i])
 
 eye = [0, 0, 10]
 center = [0, 0, 0]
@@ -835,29 +862,38 @@ while True:
     glEnable(GL_DEPTH_TEST)
     glClearColor(0.1, 0.1, 0.1, 1)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
+    count = 10000
     shader.use()
-    # explode_shader.setFloat("time", pygame.time.get_ticks() / 1000)
-    shader.setFloat3("viewPos", *eye)
-    shader.setFloat3("directionLight.direction", 5, 5, 5)
-    shader.setFloat3("directionLight.ambient", 0.2, 0.2, 0.2)
-    shader.setFloat3("directionLight.diffuse", 0.5, 0.5, 0.5)
-    shader.setFloat3("directionLight.specular", 0.1, 0.1, 0.1)
-    shader.setFloat("material.shininess", shininess)
-    u_model = get_model_matrix(scale=scale(1, 1, 1))
-    shader.setMatrix4("u_model", u_model)
-    shader.setMatrix4("u_view", u_view)
-    shader.setMatrix4("u_proj", u_proj)
-    model.draw(shader)
+    # divide = count // 100
+    # for i in range(len(translation)):
+    #     # for j in range(divide):
+    #     shader.setFloat2(f"translation[{i}]", *translation[i])
 
-    normal_shader.use()
-    # explode_shader.setFloat("time", pygame.time.get_ticks() / 1000)
-    normal_shader.setFloat3("viewPos", *eye)
-    u_model = get_model_matrix(scale=scale(1, 1, 1))
-    normal_shader.setMatrix4("u_model", u_model)
-    normal_shader.setMatrix4("u_view", u_view)
-    normal_shader.setMatrix4("u_proj", u_proj)
-    model.draw(normal_shader)
+    glBindVertexArray(quad_vao)
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, count)
+
+    # shader.use()
+    # # explode_shader.setFloat("time", pygame.time.get_ticks() / 1000)
+    # shader.setFloat3("viewPos", *eye)
+    # shader.setFloat3("directionLight.direction", 5, 5, 5)
+    # shader.setFloat3("directionLight.ambient", 0.2, 0.2, 0.2)
+    # shader.setFloat3("directionLight.diffuse", 0.5, 0.5, 0.5)
+    # shader.setFloat3("directionLight.specular", 0.1, 0.1, 0.1)
+    # shader.setFloat("material.shininess", shininess)
+    # u_model = get_model_matrix(scale=scale(1, 1, 1))
+    # shader.setMatrix4("u_model", u_model)
+    # shader.setMatrix4("u_view", u_view)
+    # shader.setMatrix4("u_proj", u_proj)
+    # model.draw(shader)
+
+    # normal_shader.use()
+    # # explode_shader.setFloat("time", pygame.time.get_ticks() / 1000)
+    # normal_shader.setFloat3("viewPos", *eye)
+    # u_model = get_model_matrix(scale=scale(1, 1, 1))
+    # normal_shader.setMatrix4("u_model", u_model)
+    # normal_shader.setMatrix4("u_view", u_view)
+    # normal_shader.setMatrix4("u_proj", u_proj)
+    # model.draw(normal_shader)
 
     # glDepthMask(False)
     # skybox_shader.use()

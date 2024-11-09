@@ -850,13 +850,13 @@ mode_draw = False
 cutoff = 12.5
 outer_cutoff = 13.5
 offset = outer_cutoff - cutoff
-shininess = 10
+shininess = 16
 count = 1
 mouse_motion_allow = False
 offset_inverse_sampling = 300
 screen_small_pos = [0, 0]
 point_light_pos = [0, 5, 0]
-light_mode = True
+phong_light_mode = True
 
 while True:
     clock.tick(FPS)
@@ -911,8 +911,8 @@ while True:
                 pass
             if event.key == K_SPACE:
                 mouse_motion_allow = not mouse_motion_allow
-            if event.key == K_RETURN:
-                light_mode = not light_mode
+            # if event.key == K_RETURN:
+            #     phong_light_mode = not phong_light_mode
 
     key = pygame.key.get_pressed()
     if key[K_d]:
@@ -1004,7 +1004,8 @@ while True:
     # glBindFramebuffer(GL_FRAMEBUFFER, multisample_fbo)
     
     glEnable(GL_DEPTH_TEST)
-    glClearColor(0.1, 0.1, 0.1, 1)
+    # glClearColor(0.509, 0.808, 0.922, 1)
+    glClearColor(0, 0, 0, 1)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     # count = 100
     # shader.use()
@@ -1029,13 +1030,22 @@ while True:
     shader.setFloat3("viewPos", *eye)
     shader.setFloat("shininess", shininess)
     shader.setFloat3("light.pos", *point_light_pos)
-    shader.setFloat3("light.ambient", *[0.05, 0.05, 0.05])
+    shader.setFloat3("light.ambient", *[0.2, 0.2, 0.2])
     # shader.setFloat3("light.diffuse", *[0.5, 0.5, 0.5])
     shader.setFloat3("light.diffuse", *[1, 1, 1])
     # shader.setFloat3("light.specular", *[0.8, 0.8, 0.8])
     shader.setFloat3("light.specular", *[0.3, 0.3, 0.3])
-    shader.setInt("lightMode", light_mode)
+    shader.setFloat("light.constant", 1)
+    shader.setFloat("light.linear", 0.09)
+    shader.setFloat("light.quadratic", 0.032)
     glBindVertexArray(plane_vao)
+
+    glViewport(0, 0, WIDTH // 2, HEIGHT)
+    shader.setInt("lightMode", phong_light_mode)
+    glDrawArrays(GL_TRIANGLES, 0, len(plane_vertices) // 6)
+
+    glViewport(WIDTH // 2, 0, WIDTH // 2, HEIGHT)
+    shader.setInt("lightMode", not phong_light_mode)
     glDrawArrays(GL_TRIANGLES, 0, len(plane_vertices) // 6)
 
     light_shader.use()
@@ -1048,6 +1058,11 @@ while True:
     light_shader.setMatrix4("u_view", u_view)
     light_shader.setMatrix4("u_proj", u_proj)
     glBindVertexArray(light_vao)
+
+    glViewport(0, 0, WIDTH // 2, HEIGHT)
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, None)
+
+    glViewport(WIDTH // 2, 0, WIDTH // 2, HEIGHT)
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, None)
 
     # glBindFramebuffer(GL_READ_FRAMEBUFFER, multisample_fbo)

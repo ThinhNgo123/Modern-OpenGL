@@ -12,6 +12,9 @@ struct PointLight
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+    float constant;
+    float linear;
+    float quadratic;
 };
 
 uniform sampler2D texture1;
@@ -35,15 +38,20 @@ vec3 calcPointLight()
     vec3 halfVector = vec3(0);
     if (lightMode)
     {
-        specular += light.specular * pow(max(0, dot(reflect(-lightDir, normal), viewDir)), shininess);
+        const float energyConservation = (2 + shininess) / (2 * 3.14);
+        specular += light.specular * energyConservation * pow(max(0, dot(reflect(-lightDir, normal), viewDir)), shininess);
     }
     else
     {
+        const float energyConservation = (8 + shininess) / (8 * 3.14);
         halfVector += normalize(lightDir + viewDir);
-        specular += light.specular * pow(max(0, dot(halfVector, normal)), shininess);
+        specular += light.specular * energyConservation * pow(max(0, dot(halfVector, normal)), shininess + 32);
     }
 
-    return ambient + diffuse + specular;
+    float dis = distance(light.pos, FragPos);
+    float attenution = 1 / (light.constant + light.linear * dis + light.quadratic * dis * dis);
+
+    return ambient + (diffuse + specular) * attenution;
 }
 
 void main()

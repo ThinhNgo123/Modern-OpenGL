@@ -329,7 +329,7 @@ def create_texture(image_path: str, number):
         format = GL_RGBA
     else:
         format = GL_RGB
-    print(format)
+    # print(format)
 
     glTexImage2D(
         GL_TEXTURE_2D, 0, format, 
@@ -589,13 +589,14 @@ cube_vertices = [
 ]
 
 plane_vertices = [
-    # positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the loor texture to repeat)
-     5.0, -0.5,  5.0,  20.0, 0.0, 0, 1, 0, 
-    -5.0, -0.5, -5.0,  0.0, 20.0, 0, 1, 0,
-    -5.0, -0.5,  5.0,  0.0, 0.0, 0, 1, 0,
-     5.0, -0.5,  5.0,  20.0, 0.0, 0, 1, 0,
-     5.0, -0.5, -5.0,  20.0, 20.0, 0, 1, 0,								
-    -5.0, -0.5, -5.0,  0.0, 20.0, 0, 1, 0
+    # positions         #texcoords  #normals
+     10.0, -0.5,  10.0, 10.0,  0.0, 0, 1, 0,
+    -10.0, -0.5,  10.0,  0.0,  0.0, 0, 1, 0,
+    -10.0, -0.5, -10.0,  0.0, 10.0, 0, 1, 0,
+
+     10.0, -0.5,  10.0, 10.0,  0.0, 0, 1, 0,
+    -10.0, -0.5, -10.0,  0.0, 10.0, 0, 1, 0,
+     10.0, -0.5, -10.0, 10.0, 10.0, 0, 1, 0
 ]
 
 screen_vertices = [
@@ -850,14 +851,26 @@ mode_draw = False
 cutoff = 12.5
 outer_cutoff = 13.5
 offset = outer_cutoff - cutoff
-shininess = 32
+shininess = 64
 count = 1
 mouse_motion_allow = False
 offset_inverse_sampling = 300
 screen_small_pos = [0, 0]
-point_light_pos = [0, 5, 0]
+point_light_pos = [
+    -10, 3, 0,
+    -5, 3, 0,
+     5, 3, 0,
+     10, 3, 0
+]
+point_light_color = [
+    0.25, 0.25, 0.25,
+     0.5,  0.5,  0.5,
+    0.75, 0.75, 0.75,
+       1,    1,    1
+]
+# point_light_pos = [-3, 0, 0]
 light_mode = True
-gamma_correction_mode = False
+gamma_correction_mode = True
 
 while True:
     clock.tick(FPS)
@@ -914,12 +927,12 @@ while True:
             if event.key == K_SPACE:
                 mouse_motion_allow = not mouse_motion_allow
                 print("Mouse_motion_allow:", mouse_motion_allow)
-            if event.key == K_RETURN:
-                light_mode = not light_mode
-                print("Phong enabled" if light_mode else "Blinn Phong enabled")
-            if event.key == K_F1:
-                gamma_correction_mode = not gamma_correction_mode
-                print("Gamma_correction_mode:", gamma_correction_mode)
+            # if event.key == K_RETURN:
+            #     light_mode = not light_mode
+                # print("Phong enabled" if light_mode else "Blinn Phong enabled")
+            # if event.key == K_F1:
+            #     gamma_correction_mode = not gamma_correction_mode
+            #     print("Gamma_correction_mode:", gamma_correction_mode)
 
     key = pygame.key.get_pressed()
     if key[K_d]:
@@ -961,17 +974,29 @@ while True:
         ]
         # eye[1] = 0
     if key[K_RIGHT]:
-        screen_small_pos[0] += camera_speed * delta_time
-        print(screen_small_pos)
+        point_light_pos[0*3] += camera_speed * delta_time
+        point_light_pos[1*3] += camera_speed * delta_time
+        point_light_pos[2*3] += camera_speed * delta_time
+        point_light_pos[3*3] += camera_speed * delta_time
+        # print(point_light_pos)
     if key[K_LEFT]:
-        screen_small_pos[0] -= camera_speed * delta_time
-        print(screen_small_pos)
+        point_light_pos[0*3] -= camera_speed * delta_time
+        point_light_pos[1*3] -= camera_speed * delta_time
+        point_light_pos[2*3] -= camera_speed * delta_time
+        point_light_pos[3*3] -= camera_speed * delta_time
+        # print(point_light_pos)
     if key[K_UP]:
-        screen_small_pos[1] += camera_speed * delta_time
-        print(screen_small_pos)
+        point_light_pos[0*3+1] += camera_speed * delta_time
+        point_light_pos[1*3+1] += camera_speed * delta_time
+        point_light_pos[2*3+1] += camera_speed * delta_time
+        point_light_pos[3*3+1] += camera_speed * delta_time
+        # print(point_light_pos)
     if key[K_DOWN]:
-        screen_small_pos[1] -= camera_speed * delta_time
-        print(screen_small_pos)
+        point_light_pos[0*3+1] -= camera_speed * delta_time
+        point_light_pos[1*3+1] -= camera_speed * delta_time
+        point_light_pos[2*3+1] -= camera_speed * delta_time
+        point_light_pos[3*3+1] -= camera_speed * delta_time
+        # print(point_light_pos)
 
     # u_model = get_model_matrix(rotate=rotate(rad(-55), 0, 0))
     # 1
@@ -1037,31 +1062,50 @@ while True:
     shader.setMatrix4("u_model", u_model)
     shader.setMatrix4("u_view", u_view)
     shader.setMatrix4("u_proj", u_proj)
-    shader.setInt("texture1", texture)
+
     shader.setFloat3("viewPos", *eye)
+    shader.setInt("texture1", texture)
     shader.setFloat("shininess", shininess)
-    shader.setFloat3("light.pos", *point_light_pos)
-    shader.setFloat3("light.ambient", *[0.05, 0.05, 0.05])
-    # shader.setFloat3("light.diffuse", *[0.5, 0.5, 0.5])
-    shader.setFloat3("light.diffuse", *[1, 1, 1])
-    # shader.setFloat3("light.specular", *[0.8, 0.8, 0.8])
-    shader.setFloat3("light.specular", *[0.3, 0.3, 0.3])
-    shader.setInt("lightMode", light_mode)
-    shader.setInt("gammaCorrectionMode", gamma_correction_mode)
+
+
+    shader.setFloat3v("light.pos", len(point_light_pos) // 3, point_light_pos)
+    shader.setFloat3v("light.ambient", len(point_light_color) // 3, point_light_color)
+    shader.setFloat3v("light.diffuse", len(point_light_color) // 3, point_light_color)
+    shader.setFloat3v("light.specular", len(point_light_color) // 3, point_light_color)
+    shader.setFloat("light.constant", 1)
+    shader.setFloat("light.linear", 0.22)
+    shader.setFloat("light.quadratic", 0.2)
+
+    # shader.setFloat("light.constant", 1)
+    # shader.setFloat("light.linear", 0.0014)
+    # shader.setFloat("light.quadratic", 0.000007)
     glBindVertexArray(plane_vao)
+
+    glViewport(0, 0, WIDTH // 2, HEIGHT)
+    shader.setInt("gammaCorrectionMode", not gamma_correction_mode)
+    glDrawArrays(GL_TRIANGLES, 0, len(plane_vertices) // 6)
+
+    glViewport(WIDTH // 2, 0, WIDTH // 2, HEIGHT)
+    shader.setInt("gammaCorrectionMode", gamma_correction_mode)
     glDrawArrays(GL_TRIANGLES, 0, len(plane_vertices) // 6)
 
     light_shader.use()
-    u_model = get_model_matrix(
-        translate=translate(*point_light_pos),
-        rotate=rotate(0, 0, 0), 
-        scale=scale(0.2, 0.2, 0.2)
-    )
-    light_shader.setMatrix4("u_model", u_model)
     light_shader.setMatrix4("u_view", u_view)
     light_shader.setMatrix4("u_proj", u_proj)
     glBindVertexArray(light_vao)
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, None)
+    for i in range(len(point_light_pos) // 3):
+        u_model = get_model_matrix(
+            translate=translate(*point_light_pos[i*3:i*3+3]),
+            rotate=rotate(0, 0, 0), 
+            scale=scale(0.2, 0.2, 0.2)
+        )
+        light_shader.setMatrix4("u_model", u_model)
+
+        glViewport(0, 0, WIDTH // 2, HEIGHT)
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, None)
+
+        glViewport(WIDTH // 2, 0, WIDTH // 2, HEIGHT)
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, None)
 
     # glBindFramebuffer(GL_READ_FRAMEBUFFER, multisample_fbo)
     # glBindFramebuffer(GL_DRAW_FRAMEBUFFER, screen_fbo)

@@ -1,4 +1,5 @@
 from OpenGL.GL import *
+import numpy as np
 
 class Shader:
     VERTEX_SHADER = GL_VERTEX_SHADER
@@ -83,6 +84,9 @@ class Shader:
 
     def setFloat3(self, name: str, value1: float, value2: float, value3: float):
         glUniform3f(self.get_location_shader(name), value1, value2, value3)
+
+    def setFloat3v(self, name: str, count: int, value: list):
+        glUniform3fv(self.get_location_shader(name), count, np.array(value, dtype=np.float32))
 
     def setMatrix4(self, name: str, matrix):
         glUniformMatrix4fv(self.get_location_shader(name), 1, GL_TRUE, matrix)

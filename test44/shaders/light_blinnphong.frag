@@ -6,55 +6,57 @@ in vec3 FragPos;
 
 out vec4 FragColor;
 
+#define LIGHT_COUNT 4
+
 struct PointLight
 {
-    vec3 pos;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    vec3 pos[LIGHT_COUNT];
+    vec3 ambient[LIGHT_COUNT];
+    vec3 diffuse[LIGHT_COUNT];
+    vec3 specular[LIGHT_COUNT];
+    float constant;
+    float linear;
+    float quadratic;
 };
 
 uniform sampler2D texture1;
 uniform PointLight light;
 uniform vec3 viewPos;
 uniform float shininess;
-uniform bool lightMode;
 uniform bool gammaCorrectionMode;
 
 float gamma = 2.2;
 
-vec3 calcPointLight()
+vec3 calcPointLight(vec3 lightPos, vec3 lightAmbient, vec3 lightDiffuse, vec3 lightSpecular)
 {
-    vec3 diffuseColor;
+    vec3 diffuseColor = texture(texture1, TexCoords).rgb;
     if (gammaCorrectionMode)
     {
-        diffuseColor = pow(texture(texture1, TexCoords).rgb, vec3(gamma * 1.0));
-    }
-    else
-    {
-        diffuseColor = texture(texture1, TexCoords).rgb;
+        diffuseColor = pow(diffuseColor, vec3(gamma));
     }
 
-    vec3 lightDir = normalize(light.pos - FragPos);
+    vec3 lightDir = normalize(lightPos - FragPos);
     vec3 normal = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
 
-    vec3 ambient = light.ambient * diffuseColor;
-    vec3 diffuse = light.diffuse * diffuseColor * max(0, dot(lightDir, normal));
+    vec3 ambient = lightAmbient * diffuseColor;
+    vec3 diffuse = lightDiffuse * diffuseColor * max(0, dot(lightDir, normal));
     
-    vec3 specular = vec3(0);
-    vec3 halfVector = vec3(0);
-    if (lightMode)
-    {
-        specular += light.specular * pow(max(0, dot(reflect(-lightDir, normal), viewDir)), shininess);
-    }
-    else
-    {
-        halfVector += normalize(lightDir + viewDir);
-        specular += light.specular * pow(max(0, dot(halfVector, normal)), shininess);
-    }
+    vec3 halfVector = normalize(lightDir + viewDir);
+    // float eneryConservation = (8 + shininess) / (8 * 3.14);
+    float eneryConservation = 1;
+    vec3 specular = lightSpecular * eneryConservation * pow(max(0, dot(halfVector, normal)), shininess);
 
-    return ambient + diffuse + specular;
+    float dis = length(FragPos - lightPos);
+    // float attenuation = 1 / (
+    //     light.constant + \
+    //     (gammaCorrectionMode ? 0 : light.linear) * dis + \
+    //     (gammaCorrectionMode ? light.quadratic : 0) * dis * dis
+    // );
+    float attenuation = 1 / (light.constant + light.linear * dis + light.quadratic * dis * dis);
+    
+    // return ambient + (diffuse + specular) * attenuation;
+    return (diffuse + specular) * attenuation;
 }
 
 vec3 gammaCorrection(vec3 color, float gamma)
@@ -64,14 +66,19 @@ vec3 gammaCorrection(vec3 color, float gamma)
 
 void main()
 {
-    vec3 color;
+    vec3 color = vec3(0);
+    for (int i = 0; i < LIGHT_COUNT; i++)
+    {
+        color += calcPointLight(
+            light.pos[i], 
+            light.ambient[i],
+            light.diffuse[i],
+            light.specular[i]
+        );
+    }
     if (gammaCorrectionMode)
     {
-        color = gammaCorrection(calcPointLight(), gamma);
-    }
-    else
-    {
-        color = calcPointLight();
+        color = gammaCorrection(color, gamma);
     }
     FragColor = vec4(color, 1);
 }

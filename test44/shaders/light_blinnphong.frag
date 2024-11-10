@@ -76,9 +76,19 @@ void main()
             light.specular[i]
         );
     }
+
+    vec3 diffuseColor = texture(texture1, TexCoords).rgb;
+    if (gammaCorrectionMode)
+    {
+        diffuseColor = pow(diffuseColor, vec3(gamma));
+    }
+
+    color += vec3(0.1) * diffuseColor; //ambient
+    
     if (gammaCorrectionMode)
     {
         color = gammaCorrection(color, gamma);
     }
+    
     FragColor = vec4(color, 1);
 }

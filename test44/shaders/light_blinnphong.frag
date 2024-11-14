@@ -45,7 +45,7 @@ vec3 calcPointLight(vec3 lightPos, vec3 lightAmbient, vec3 lightDiffuse, vec3 li
     vec3 halfVector = normalize(lightDir + viewDir);
     // float eneryConservation = (8 + shininess) / (8 * 3.14);
     float eneryConservation = 1;
-    vec3 specular = lightSpecular * eneryConservation * pow(max(0, dot(halfVector, normal)), shininess);
+    vec3 specular = lightSpecular * eneryConservation * pow(max(0, dot(halfVector, normal)), shininess) * diffuseColor;
 
     float dis = length(FragPos - lightPos);
     // float attenuation = 1 / (

@@ -49,8 +49,8 @@ vec3 calcPointLight(vec3 lightPos, vec3 lightAmbient, vec3 lightDiffuse, vec3 li
 
     float dis = length(FragPos - lightPos);
     // float attenuation = 1 / (
-    //     light.constant + \
-    //     (gammaCorrectionMode ? 0 : light.linear) * dis + \
+    //     light.constant + 
+    //     (gammaCorrectionMode ? 0 : light.linear) * dis + 
     //     (gammaCorrectionMode ? light.quadratic : 0) * dis * dis
     // );
     float attenuation = 1 / (light.constant + light.linear * dis + light.quadratic * dis * dis);

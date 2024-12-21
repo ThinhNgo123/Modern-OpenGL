@@ -16,6 +16,19 @@ uniform vec3 uLightColor;
 uniform vec3 uLightDir;
 uniform vec3 uViewPos;
 
+float sampleShadowLinear(sampler2D sampleTexure, vec3 texCoords, vec2 texelSize, float bias)
+{
+    ivec2 intergerPart = ivec2(texCoords.xy / texelSize);
+    vec2 fractPart = fract(texCoords.xy - intergerPart);
+    float bottomLeft = step(texture(sampleTexure, (intergerPart + vec2(0.5, 0.5)) * texelSize).r, texCoords.z - bias);
+    float bottomRight = step(texture(sampleTexure, (intergerPart + vec2(1.5, 0.5)) * texelSize).r, texCoords.z - bias);
+    float topLeft = step(texture(sampleTexure, (intergerPart + vec2(0.5, 1.5)) * texelSize).r, texCoords.z - bias);
+    float topRight = step(texture(sampleTexure, (intergerPart + vec2(1.5, 1.5)) * texelSize).r, texCoords.z - bias);
+    float mixTopBottomLeft = mix(bottomLeft, topLeft, fractPart.y);
+    float mixTopBottomRight = mix(bottomRight, topRight, fractPart.y);
+    return mix(mixTopBottomLeft, mixTopBottomRight, fractPart.x);
+}
+
 void main()
 {
     //calc shadow
@@ -30,16 +43,18 @@ void main()
     // float bias = 0.005;
     // float bias = (0.05 * (1 - dot(normalize(fs_in.Normal), normalize(uLightPos - fragPosLightSpace.xyz))), 0.005);
     float bias = max(0.05 * (1 - dot(normalize(fs_in.Normal), normalize(-uLightDir))), 0.005);
-    // float bias = 0.003;
+    // float bias = texelDepthSize.x;
 
     float shadowValue = 0;
-    int count = 2;
+    int count = 1;
     for (int i = -count; i <= count; i++)
     {
         for (int j = -count; j <= count; j++)
         {
             float pcfDepth = texture(depthMap, fragCoord.xy + vec2(i, j) * texelDepthSize).r;
-            shadowValue += (fragCoord.z - bias > pcfDepth) ? 1 : 0;
+            // shadowValue += (fragCoord.z - bias > pcfDepth) ? 1 : 0;
+            shadowValue += step(pcfDepth, fragCoord.z - bias);
+            // shadowValue += sampleShadowLinear(depthMap, fragCoord + vec3(i * texelDepthSize.x , j * texelDepthSize.y , 0), texelDepthSize, bias);
         }
     }
     shadowValue /= (2 * count + 1) * (2 * count + 1);

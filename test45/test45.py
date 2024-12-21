@@ -1035,8 +1035,8 @@ while True:
     glBindTexture(GL_TEXTURE_2D, depth_map)
     shadow_shader.setInt("depthMap", 7)
     glActiveTexture(GL_TEXTURE0 + 4)
-    glBindTexture(GL_TEXTURE_2D, 4)
-    shadow_shader.setInt("diffuseMap", wood_texture)
+    glBindTexture(GL_TEXTURE_2D, wood_texture)
+    shadow_shader.setInt("diffuseMap", 4)
     shadow_shader.setMatrix4("uLightSpace", u_light_space_matrix)
     shadow_shader.setFloat3("uLightColor", 1, 1, 1)
     shadow_shader.setFloat3("uLightDir", *light_dir)
@@ -1074,7 +1074,7 @@ while True:
     u_model = get_model_matrix(translate(-3, 1, 0), scale=scale(0.7, 0.7, 0.7))
     shadow_backpack_shader.setMatrix4("uModel", u_model)
     model.draw(shadow_backpack_shader)
-
+    
     # light_shader.use()
     # light_shader.setMatrix4("uView", u_view)
     # light_shader.setMatrix4("uProj", u_proj)
